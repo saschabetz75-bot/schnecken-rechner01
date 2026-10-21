@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#111827">
+  <meta name="description" content="Einfacher Schnecken-Drehzahl-Rechner für die Extrusion">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <title>Schnecken-Rechner</title>
+  <style>
+    :root { color-scheme: dark; --bg:#0b1220; --panel:#151f31; --line:#2a3850; --muted:#aab7cc; --accent:#60a5fa; --green:#86efac; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; background:linear-gradient(160deg,#101a2c,#080d17 70%); color:#f8fafc; font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif; padding: max(18px,env(safe-area-inset-top)) 16px max(22px,env(safe-area-inset-bottom)); }
+    main { width:min(100%,460px); margin:0 auto; }
+    header { display:flex; align-items:center; gap:13px; margin:10px 0 22px; }
+    .logo { width:50px;height:50px;border-radius:15px;display:grid;place-items:center;background:#1d4ed8;font-size:25px;box-shadow:0 8px 24px #1d4ed844; }
+    h1 { font-size:23px;line-height:1.15;margin:0 0 4px;letter-spacing:-.4px; }
+    .subtitle { margin:0;color:var(--muted);font-size:13px; }
+    .card { background:#121b2bde;border:1px solid var(--line);border-radius:22px;padding:19px;box-shadow:0 18px 55px #0003; }
+    .field { margin-bottom:17px; }
+    label { display:block;font-size:14px;font-weight:650;margin-bottom:8px; }
+    .unit { color:var(--muted);font-weight:400; }
+    input { width:100%;border:1px solid #3a4a64;background:#0b1321;color:#fff;border-radius:12px;padding:15px 14px;font:inherit;font-size:18px;outline:none; }
+    input:focus { border-color:var(--accent);box-shadow:0 0 0 3px #60a5fa22; }
+    .result { margin-top:5px;padding:18px;border-radius:17px;background:linear-gradient(135deg,#123a35,#102b31);border:1px solid #23665b; }
+    .result-label { color:#b6d8d1;font-size:13px;margin-bottom:6px; }
+    .number { font-size:clamp(30px,9vw,42px);font-weight:800;letter-spacing:-1.2px;color:var(--green);line-height:1.15;overflow-wrap:anywhere; }
+    .hint { color:#b6d8d1;font-size:12px;margin-top:8px; }
+    .actions { display:flex;gap:10px;margin-top:15px; }
+    button { flex:1;border:1px solid #3a4a64;background:#1c2940;color:#f8fafc;border-radius:12px;padding:12px 10px;font:600 14px system-ui;cursor:pointer; }
+    button:active { transform:scale(.99); }
+    .formula { margin:16px 3px 0;color:var(--muted);font-size:12px; }
+    .warning { margin:12px 3px 0;color:#fcd9a2;font-size:12px; }
+    .install { display:none;width:100%;margin-top:14px;background:#2563eb;border-color:#2563eb; }
+    footer { text-align:center;color:#78869d;font-size:11px;margin:18px 0 0; }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="logo" aria-hidden="true">⚙️</div>
+    <div><h1>Schnecken-Rechner</h1><p class="subtitle">Extrusion · Zieldrehzahl sofort berechnen</p></div>
+  </header>
+  <section class="card" aria-label="Drehzahl berechnen">
+    <div class="field">
+      <label for="currentWeight">Aktuelles Gewicht <span class="unit">(g)</span></label>
+      <input id="currentWeight" type="text" inputmode="decimal" autocomplete="off" value="41,5" aria-describedby="help">
+    </div>
+    <div class="field">
+      <label for="currentRpm">Aktuelle Schneckendrehzahl <span class="unit">(U/min)</span></label>
+      <input id="currentRpm" type="text" inputmode="decimal" autocomplete="off" value="25">
+    </div>
+    <div class="field" style="margin-bottom:8px">
+      <label for="targetWeight">Gewünschtes Gewicht <span class="unit">(g)</span></label>
+      <input id="targetWeight" type="text" inputmode="decimal" autocomplete="off" value="54">
+    </div>
+    <div class="result" aria-live="polite">
+      <div class="result-label">Benötigte Schneckendrehzahl</div>
+      <div class="number" id="result">32,53 U/min</div>
+      <div class="hint" id="resultHint">Rechnerischer Richtwert bei proportionalem Zusammenhang.</div>
+    </div>
+    <div class="actions">
+      <button id="clearBtn" type="button">Eingaben leeren</button>
+      <button id="exampleBtn" type="button">Beispiel einsetzen</button>
+    </div>
+    <button id="installBtn" class="install" type="button">App installieren</button>
+  </section>
+  <p class="formula" id="help">Rechnung: aktuelle Drehzahl × gewünschtes Gewicht ÷ aktuelles Gewicht.</p>
+  <p class="warning">Hinweis: Das ist ein rechnerischer Richtwert. Material, Temperatur, Durchsatz und Anlagenverhalten können abweichen. Drehzahl an der Maschine vorsichtig anpassen und prüfen.</p>
+  <footer>Einfacher Rechner · Eingaben werden nicht gespeichert oder übertragen</footer>
+</main>
+<script>
+  const weight = document.getElementById('currentWeight');
+  const rpm = document.getElementById('currentRpm');
+  const target = document.getElementById('targetWeight');
+  const result = document.getElementById('result');
+  const hint = document.getElementById('resultHint');
+  const fields = [weight, rpm, target];
+
+  function parseNumber(value) {
+    const normalized = String(value).trim().replace(/\s/g, '').replace(',', '.');
+    if (!normalized || !/^[+-]?(?:\d+\.?\d*|\.\d+)$/.test(normalized)) return NaN;
+    return Number(normalized);
+  }
+  function formatNumber(value) {
+    return value.toLocaleString('de-DE', {minimumFractionDigits:0, maximumFractionDigits:2});
+  }
+  function calculate() {
+    const w = parseNumber(weight.value), r = parseNumber(rpm.value), t = parseNumber(target.value);
+    if (![w,r,t].every(Number.isFinite) || w <= 0 || r < 0 || t <= 0) {
+      result.textContent = 'Werte prüfen';
+      hint.textContent = 'Bitte positive Gewichte und eine gültige Drehzahl eingeben.';
+      return;
+    }
+    const answer = r * t / w;
+    result.textContent = formatNumber(answer) + ' U/min';
+    hint.textContent = 'Rechnerischer Richtwert bei proportionalem Zusammenhang.';
+  }
+  fields.forEach(field => field.addEventListener('input', calculate));
+  document.getElementById('clearBtn').addEventListener('click', () => {
+    fields.forEach(field => field.value = '');
+    result.textContent = '— U/min';
+    hint.textContent = 'Drei Werte eingeben, um zu rechnen.';
+    weight.focus();
+  });
+  document.getElementById('exampleBtn').addEventListener('click', () => {
+    weight.value = '41,5'; rpm.value = '25'; target.value = '54'; calculate();
+  });
+
+  let deferredPrompt;
+  const installBtn = document.getElementById('installBtn');
+  window.addEventListener('beforeinstallprompt', (event) => {
+    event.preventDefault();
+    deferredPrompt = event;
+    installBtn.style.display = 'block';
+  });
+  installBtn.addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    installBtn.style.display = 'none';
+  });
+  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+    window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+  }
+  calculate();
+</script>
+</body>
+</html>

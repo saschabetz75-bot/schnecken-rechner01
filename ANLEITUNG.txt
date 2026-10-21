@@ -1,0 +1,31 @@
+SCHNECKEN-RECHNER – ANDROID WEB-APP
+
+Dateien:
+- index.html: Rechner und Oberfläche
+- manifest.webmanifest: Installationsinformationen
+- sw.js: Offline-Cache
+- icon.svg: App-Symbol
+
+WICHTIG:
+Die Dateien allein lassen sich nicht wie eine APK direkt installieren. Für die Installation als Web-App müssen sie über eine HTTPS-Adresse bereitgestellt werden. Danach öffnest du die Adresse in Chrome auf Android und wählst:
+1. Menü (drei Punkte)
+2. „App installieren“ oder „Zum Startbildschirm hinzufügen“
+3. Bestätigen
+
+Einfache kostenlose Veröffentlichung:
+1. Erstelle bei GitHub ein Konto und ein neues öffentliches Repository.
+2. Lade alle vier Dateien in das Hauptverzeichnis hoch. Benenne die HTML-Datei exakt index.html.
+3. Öffne im Repository Settings > Pages.
+4. Bei Build and deployment als Quelle „Deploy from a branch“, Branch „main“ und Ordner „/(root)“ auswählen, speichern.
+5. Warte, bis GitHub Pages die Website veröffentlicht. Die angezeigte Adresse sieht ungefähr so aus: https://DEIN-NAME.github.io/REPOSITORY/
+6. Öffne diese HTTPS-Adresse auf dem Android-Handy in Chrome und installiere die App wie oben.
+
+Die genaue Adresse hängt von deinem GitHub-Namen und Repository-Namen ab. Die Dateien werden nicht automatisch online gestellt.
+
+Rechnung:
+Zieldrehzahl = aktuelle Drehzahl × Zielgewicht ÷ aktuelles Gewicht
+
+Beispiel:
+25 U/min × 54 g ÷ 41,5 g = 32,53 U/min
+
+Der Wert ist ein rechnerischer Richtwert. Er setzt einen proportionalen Zusammenhang zwischen Gewicht und Drehzahl voraus und ersetzt keine Prüfung an der Maschine.
